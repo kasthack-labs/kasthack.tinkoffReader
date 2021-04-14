@@ -62,7 +62,7 @@ Options:
 ### Входной
 
 * TinkoffXlsx — XLSX, который отдаёт Тинькофф
-* RawJson — JSON, сгенерированный ранее через --output-format=Raw
+* RawJson — JSON, сгенерированный ранее через `--output-format=Raw`
 
 ### Выходной
 * Raw — документ в JSON без модификаций.
