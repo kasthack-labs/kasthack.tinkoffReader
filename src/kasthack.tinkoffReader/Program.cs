@@ -1,31 +1,76 @@
-﻿namespace kasthack.tinkoffReader
+﻿namespace kasthack.TinkoffReader
 {
     using System;
     using System.IO;
     using System.Text.Json;
+    using System.Threading.Tasks;
 
-    using kasthack.tinkoffReader.Raw;
+    using kasthack.TinkoffReader.Raw;
+    using kasthack.TinkoffReader.Raw.Models;
+    using kasthack.TinkoffReader.Typed;
 
     using OfficeOpenXml;
 
-    class Program
+    public static class Program
     {
-        /// <summary>
-        /// Reads tinkoff XLSX broker report and converts it to a machine-readble json file
-        /// </summary>
-        /// <param name="inputPath">Input file path</param>
-        /// <param name="outputPath">Output json path</param>
-        /// <param name="format">Output format. Currently, only raw is supported</param>
-        static void Main(FileInfo inputPath, FileInfo outputPath, OutputFormat format = OutputFormat.Raw)
+        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
-            using var package = new ExcelPackage(inputPath);
-            var rawReport = new RawReportParser().ParseRawReport(package);
-            var json = System.Text.Json.JsonSerializer.Serialize(rawReport, new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
-            File.WriteAllText(outputPath.FullName, json);
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        };
+
+        /// <summary>
+        /// Reads tinkoff XLSX broker report and converts it to a machine-readble json file.
+        /// </summary>
+        /// <param name="inputPath">Input file path.</param>
+        /// <param name="outputPath">Output file path.</param>
+        /// <param name="inputFormat">Input format.</param>
+        /// <param name="outputFormat">Output format. Currently, only raw is supported.</param>
+        public static async Task Main(FileInfo inputPath, FileInfo outputPath, InputFormat inputFormat = InputFormat.TinkoffXlsx, OutputFormat outputFormat = OutputFormat.Raw)
+        {
+            var rawReport = inputFormat switch
+            {
+                InputFormat.TinkoffXlsx => ReadTinkoffXlsx(inputPath),
+                InputFormat.RawJson => await ReadRawJson(inputPath).ConfigureAwait(false),
+                _ => throw new Exception($"Invalid input format: {inputFormat}"),
+            };
+
+            switch (outputFormat)
+            {
+                case OutputFormat.Raw:
+                    {
+                        var json = JsonSerializer.Serialize(rawReport, JsonOptions);
+                        File.WriteAllText(outputPath.FullName, json);
+                    }
+
+                    break;
+                case OutputFormat.Parsed:
+                    {
+                        var report = ReportParser.ParseReport(rawReport);
+                        var json = JsonSerializer.Serialize(report, JsonOptions);
+                        File.WriteAllText(outputPath.FullName, json);
+                    }
+
+                    break;
+                default:
+                    throw new Exception($"Invalid output format: {outputFormat}");
+            }
 
             Console.WriteLine($"Parsed the report and saved it to {outputPath.FullName}");
 
             Console.WriteLine();
+        }
+
+        private static RawReport ReadTinkoffXlsx(FileInfo inputPath)
+        {
+            using var package = new ExcelPackage(inputPath);
+            return new RawReportParser().ParseRawReport(package);
+        }
+
+        private static async Task<RawReport> ReadRawJson(FileInfo inputPath)
+        {
+            using var file = File.OpenRead(inputPath.FullName);
+            return await JsonSerializer.DeserializeAsync<RawReport>(file, JsonOptions).ConfigureAwait(false);
         }
     }
 }

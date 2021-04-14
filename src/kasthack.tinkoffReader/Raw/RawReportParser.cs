@@ -1,20 +1,20 @@
-﻿namespace kasthack.tinkoffReader.Raw
+﻿namespace kasthack.TinkoffReader.Raw
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-
+    using kasthack.TinkoffReader.Raw.Models;
     using OfficeOpenXml;
     using OfficeOpenXml.Style;
 
-    using kasthack.tinkoffReader.Raw.Models;
-
-    //Extracts data from a Tinkoff broker report in XLSX format
-    //not threadsafe, create separate instances for parallel processing
+    /// <summary>
+    /// Extracts data from a Tinkoff broker report in XLSX format.
+    /// not threadsafe, create separate instances for parallel processing.
+    /// </summary>
     public class RawReportParser
     {
-        private IDictionary<int, (int x1, int y1, int x2, int y2)[]> mergeLookupTable;
+        private IDictionary<int, (int X1, int Y1, int X2, int Y2)[]> mergeLookupTable;
 
         public RawReport ParseRawReport(ExcelPackage package)
         {
@@ -25,6 +25,7 @@
             var rawSections = this.ParseSections(sheet).ToArray();
             return new RawReport(header, rawSections, footer);
         }
+
         private IEnumerable<RawSection> ParseSections(ExcelWorksheet sheet)
         {
             var rowEnum = this.GetRowEnumerator(sheet);
@@ -33,7 +34,7 @@
                 yield break;
             }
 
-            //todo: check if it's missing rows after first+ section
+            // todo: check if it's missing rows after first+ section
             while (rowEnum.Current != default)
             {
                 if (this.IsSeparatorRow(rowEnum.Current))
@@ -42,6 +43,7 @@
                     {
                         yield break;
                     }
+
                     continue;
                 }
                 else if (this.IsSectionTitle(rowEnum.Current))
@@ -54,7 +56,9 @@
                 }
             }
         }
+
         private IEnumerator<ExcelRange> GetRowEnumerator(ExcelWorksheet sheet) => Enumerable
+
             // 7 => size of header
             // 3 => size of footer
             // 1 => offset due to 1-based indexes
@@ -83,6 +87,7 @@
                     {
                         yield break;
                     }
+
                     continue;
                 }
                 else if (this.IsTableHeader(rowEnum.Current))
@@ -95,6 +100,7 @@
                 }
             }
         }
+
         private RawTable ParseTable(IEnumerator<ExcelRange> rowEnum)
         {
             var row = rowEnum.Current;
@@ -105,7 +111,7 @@
             return new RawTable(tableHeader, rows, tables, tableRow);
         }
 
-        private (IReadOnlyList<RawRow> rows, IReadOnlyList<RawTable> tables) ParseSectionTableBody(IEnumerator<ExcelRange> rowEnum, IReadOnlyList<string> tableHeader)
+        private (IReadOnlyList<RawRow> Rows, IReadOnlyList<RawTable> Tables) ParseSectionTableBody(IEnumerator<ExcelRange> rowEnum, IReadOnlyList<string> tableHeader)
         {
             var rows = new List<RawRow>();
             var tables = new List<RawTable>();
@@ -118,6 +124,7 @@
                     {
                         break;
                     }
+
                     continue;
                 }
                 else if (this.IsDataRow(row))
@@ -127,6 +134,7 @@
                     {
                         break;
                     }
+
                     continue;
                 }
                 else if (this.IsTableHeader(row))
@@ -138,6 +146,7 @@
                         {
                             break;
                         }
+
                         continue;
                     }
                 }
@@ -149,6 +158,7 @@
 
                 break;
             }
+
             return (rows, tables);
         }
 
@@ -170,6 +180,7 @@
                         {
                             break;
                         }
+
                         continue;
                     }
                     else if (this.IsDataRow(row))
@@ -179,6 +190,7 @@
                         {
                             break;
                         }
+
                         continue;
                     }
                     else if (this.IsTableHeader(row))
@@ -190,6 +202,7 @@
                             {
                                 break;
                             }
+
                             continue;
                         }
                     }
@@ -202,6 +215,7 @@
                             {
                                 break;
                             }
+
                             continue;
                         }
                     }
@@ -209,28 +223,27 @@
                     break;
                 }
             }
+
             return new RawTable(tableHeader, rows, Array.Empty<RawTable>(), tableRow);
         }
 
-        private (RawHeader header, RawFooter footer) ParseFooterAndHeader(ExcelWorksheet sheet)
+        private (RawHeader Header, RawFooter Footer) ParseFooterAndHeader(ExcelWorksheet sheet)
         {
             var rows = sheet.Dimension.Rows;
 
-            //header and footer are located at fixed addresses
-            //numbers are well known data
+            // header and footer are located at fixed addresses
+            // numbers are well known data
             var header = new RawHeader(
                 BrokerInfo: sheet.Cells[2, 1].Text,
                 ReportDate: sheet.Cells[3, 1].Text,
                 Investor: sheet.Cells[5, 1].Text,
                 ReportRange: sheet.Cells[6, 1].Text,
-                StartRow: 2
-            );
+                StartRow: 2);
             var footer = new RawFooter(
                 AccountingPerson: sheet.Cells[rows - 1, 1].Text,
                 BrokerDivisionHead: sheet.Cells[rows - 2, 1].Text,
                 BrokerName: sheet.Cells[rows - 3, 1].Text,
-                StartRow: rows - 3
-            );
+                StartRow: rows - 3);
 
             if (!(footer.IsValid() && header.IsValid()))
             {
@@ -250,13 +263,14 @@
             for (int columnIndex = 1, visibleColumn = 0; columnIndex < row.Worksheet.Dimension.Columns; visibleColumn++)
             {
                 var cell = this.GetParentMergeRegion(row.Worksheet.Cells[row.Start.Row, columnIndex]);
-                columnValues.Add(columns[visibleColumn], cell.RichText.Text.Replace("\n", "").Trim());
+                columnValues.Add(columns[visibleColumn], cell.RichText.Text.Replace("\n", string.Empty).Trim());
 
                 if (cell.Columns > 1)
                 {
                     columnIndex += cell.Columns;
                 }
             }
+
             return new RawRow(columnValues, row.Start.Row);
         }
 
@@ -267,17 +281,19 @@
             {
                 var cell = this.GetParentMergeRegion(row.Worksheet.Cells[row.Start.Row, i]);
                 columns.Add(
-                    cell.RichText.Text.Replace("\n", "").Trim()
-                );
+                    cell.RichText.Text.Replace("\n", string.Empty).Trim());
                 if (cell.Columns > 1)
                 {
                     i += cell.Columns;
                 }
             }
+
             return columns;
         }
+
         #region Classifiers
         private bool IsSectionTitle(ExcelRange cell) => cell.Style.Font.Size == 9;
+
         private bool IsSeparatorRow(ExcelRange cell)
         {
             if (cell.Value != null)
@@ -285,17 +301,19 @@
                 return false;
             }
 
-            //empty except for two merged cells on the right
+            // empty except for two merged cells on the right
             var rightColumnIndex = cell.Worksheet.Dimension.End.Column;
             if (rightColumnIndex < 1)
             {
                 return false;
             }
+
             var rightMostBorder = this.GetParentMergeRegion(cell.Worksheet.Cells[cell.Start.Row, rightColumnIndex]).Start.Column - 1;
             if (rightMostBorder < 1)
             {
                 return false;
             }
+
             var lastEmptyCell = this.GetParentMergeRegion(cell.Worksheet.Cells[cell.Start.Row, rightMostBorder]).Start.Column - 1;
             if (lastEmptyCell < 1)
             {
@@ -316,48 +334,51 @@
                 });
             return result;
         }
+
         private bool IsTableHeader(ExcelRange row) => row.Style.Fill.BackgroundColor.Rgb == "C1D3EC";
+
         private bool IsDataRow(ExcelRange row) =>
             row.Style.Font.Size < 6
             && (row.Style.Fill.BackgroundColor.Rgb is "FFFFFF" or null)
             && (row.Style.Border.Bottom.Style != ExcelBorderStyle.None || row.Style.Border.Top.Style != ExcelBorderStyle.None);
+
         private bool IsSubTableHeader(ExcelRange row) => row.Style.Fill.BackgroundColor.Rgb == "D9D9D9";
 
         #endregion
 
         #region MergeExtensions
 
-        //Looking up parent cells for merged regions is horribly broken( O(spreadsheet size) instead of O(1) or similar, takes up to 200ms per lookup on the test dataset)
-        //in EPPlus, so we have to reinvent the wheel.
+        // Looking up parent cells for merged regions is horribly broken( O(spreadsheet size) instead of O(1) or similar, takes up to 200ms per lookup on the test dataset)
+        // in EPPlus, so we have to reinvent the wheel.
 
-        //creates fast merged cell lookup table
-        //key: row index
-        //value: array of merge regions in that row sorted by x asceding
-        //multirow merge regions are not supported
-        //the right way to do this is building an R-tree but I'm not a CS grad
-        private IDictionary<int, (int x1, int y1, int x2, int y2)[]> BuildFastMergedCellLookupTable(ExcelWorksheet worksheet)
+        // creates fast merged cell lookup table
+        // key: row index
+        // value: array of merge regions in that row sorted by x asceding
+        // multirow merge regions are not supported
+        // the right way to do this is building an R-tree but I'm not a CS grad
+        private IDictionary<int, (int X1, int Y1, int X2, int Y2)[]> BuildFastMergedCellLookupTable(ExcelWorksheet worksheet)
         {
             var mergeRegions = worksheet
                 .MergedCells
                 .Select(a => worksheet.Cells[a])
-                .Select(a => (x1: a.Start.Column, y1: a.Start.Row, x2: a.End.Column, y2: a.End.Row))
+                .Select(a => (X1: a.Start.Column, Y1: a.Start.Row, X2: a.End.Column, Y2: a.End.Row))
                 .ToArray();
 
-            if (mergeRegions.Any(a => a.y1 != a.y2))
+            if (mergeRegions.Any(a => a.Y1 != a.Y2))
             {
                 throw new NotSupportedException("Multirow merge regions are not supported for fast lookups");
             }
 
-            return mergeRegions.GroupBy(a => a.y1).ToDictionary(a => a.Key, a => a.OrderBy(a => a.x1).ToArray());
+            return mergeRegions.GroupBy(a => a.Y1).ToDictionary(a => a.Key, a => a.OrderBy(a => a.X1).ToArray());
         }
 
         private ExcelRange GetParentMergeRegion(ExcelRange cell)
         {
             if (cell.Merge)
             {
-                //custom lookup code working close to O(1) as there's a fixed small number of columns
+                // custom lookup code working close to O(1) as there's a fixed small number of columns
                 var row = this.mergeLookupTable[cell.Start.Row];
-                var (x1, y1, x2, y2) = row.Single(a => a.x1 <= cell.Start.Column && a.x2 >= cell.End.Column);
+                var (x1, y1, x2, y2) = row.Single(a => a.X1 <= cell.Start.Column && a.X2 >= cell.End.Column);
                 return cell.Worksheet.Cells[y1, x1, y2, x2];
 
                 /*
