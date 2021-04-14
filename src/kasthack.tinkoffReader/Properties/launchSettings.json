@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "kasthack.tinkoffReader": {
+      "commandName": "Project",
+      "commandLineArgs": "--help"
+    }
+  }
+}
