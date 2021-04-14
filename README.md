@@ -11,4 +11,18 @@ Tinkoff broker report reader
 
 ## Usage
 
-`kasthack.tinkoffReader.exe --input-path=<your broker report> --output-path=<output json>`
+```
+kasthack.TinkoffReader:
+  Reads tinkoff XLSX broker report and converts it into a machine-readble json file.
+
+Usage:
+  kasthack.TinkoffReader [options]
+
+Options:
+  --input-path <input-path>               Input file path.
+  --output-path <output-path>             Output file path.
+  --input-format <RawJson|TinkoffXlsx>    Input format. [default: TinkoffXlsx]
+  --output-format <Parsed|Raw>            Output format. [default: Raw]
+  --version                               Show version information
+  -?, -h, --help                          Show help and usage information
+```
