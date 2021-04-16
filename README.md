@@ -1,4 +1,9 @@
-Tinkoff broker report reader
+# Конвертер брокерских отчётов Тинькофф
+
+## Зачем?
+
+Тинькофф отдаёт потрясающе убогие документы, с которыми невозможно работать. Конвертер решает проблему, позволяя получить машинночитаемый JSON или корректный XLSX-файл.
+На момент написания [Investments](https://github.com/KonishchevDmitry/investments) не мог обработать некоторые отчёты, а налоги нужно было подать.
 
 
 [![Github All Releases](https://img.shields.io/github/downloads/kasthack-labs/kasthack.tinkoffReader/total.svg)](https://github.com/kasthack-labs/kasthack.tinkoffReader/releases/latest)
@@ -9,7 +14,31 @@ Tinkoff broker report reader
 [![Patreon pledges](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3Dkasthack%26type%3Dpledges&style=flat)](https://patreon.com/kasthack)
 [![Patreon patrons](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3Dkasthack%26type%3Dpatrons&style=flat)](https://patreon.com/kasthack)
 
-## Usage
+## Использование
+
+### Установка
+
+#### Windows
+
+Свежие бинари для Windows [лежат тут](https://github.com/kasthack-labs/kasthack.tinkoffReader/releases/latest).
+
+#### Unix
+
+* Если у вас MacOS / Linux, придётся собрать из сорцов.
+
+* Для начала, поставьте [.NET SDK](https://dotnet.microsoft.com/download).
+
+* Соберите конвертер:
+
+```
+git clone https://github.com/kasthack-labs/kasthack.tinkoffReader/
+cd kasthack.tinkoffReader/src
+dotnet build
+```
+
+* Запускайте через `dotnet run -- [параметры приложения]`
+
+## Выполнение
 
 ```
 kasthack.TinkoffReader:
@@ -27,3 +56,15 @@ Options:
   --version                               Show version information
   -?, -h, --help                          Show help and usage information
 ```
+
+## Форматы
+
+### Входной
+
+* TinkoffXlsx — XLSX, который отдаёт Тинькофф
+* RawJson — JSON, сгенерированный ранее через `--output-format=Raw`
+
+### Выходной
+* Raw — документ в JSON без модификаций.
+* Xlsx — конвертированный XLSX. Один лист на секцию, никаких объединённых ячеек / разделителей / повторяющихся заголовков таблиц.
+* Parsed — строго типизированный JSON. На момент написания документации покрывает только секции с операциями по ценным бумагам и движениям наличных средств.
