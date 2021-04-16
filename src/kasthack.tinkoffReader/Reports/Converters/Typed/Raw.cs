@@ -1,40 +1,68 @@
-﻿namespace kasthack.TinkoffReader.Typed
+﻿namespace kasthack.TinkoffReader.Reports.Converters.Typed
 {
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
 
-    using kasthack.TinkoffReader.Raw.Models;
+    using kasthack.TinkoffReader.Reports.Models.Raw;
+    using kasthack.TinkoffReader.Reports.Models.Typed;
 
-    public class ReportParser
+    /// <summary>
+    /// Parses a RawReport into a Report.
+    /// </summary>
+    public class Raw
     {
         private static readonly CultureInfo russianCulture = CultureInfo.GetCultureInfo("ru");
         private static readonly CultureInfo invariantCulture = CultureInfo.InvariantCulture;
 
-        public static Report ParseReport(RawReport report) => new Report(
+        public static Report Transform(RawReport report) => new Report(
             new Header(),
             new Sections(
-                ParseExecutedTradesSection(report.Sections.Single(a => a.Name == "1.1 Информация о совершенных и исполненных сделках на конец отчетного периода")),
-                ParseUnexecutedTradesSection(report.Sections.Single(a => a.Name == "1.2 Информация о неисполненных сделках на конец отчетного периода")),
-                ParseOtherTradesSection(report.Sections.Single(a => a.Name == "1.3 Сделки за расчетный период, обязательства из которых прекращены  не в результате исполнения")),
-                //todo: 1.4 repo contract changes sections
-                ParseCashFlowOperationsSection(report.Sections.Single(a => a.Name == "2. Операции с денежными средствами"))
+                SettedTrades: ParseSettledTradesSection(report.Sections.Single(a => a.Name == "1.1 Информация о совершенных и исполненных сделках на конец отчетного периода")),
+                UnsettledTrades: ParseUnsettledTradesSection(report.Sections.Single(a => a.Name == "1.2 Информация о неисполненных сделках на конец отчетного периода")),
+                OtherTrades: ParseOtherTradesSection(report.Sections.Single(a => a.Name == "1.3 Сделки за расчетный период, обязательства из которых прекращены  не в результате исполнения")),
+                /*
+                 * todo:
+                 * 1.4 repo contract changes sections
+                 * */
+                CashOperations: ParseCashFlowOperationsSection(report.Sections.Single(a => a.Name == "2. Операции с денежными средствами")),
+                /*
+                 * todo:
+                 * 3.1 Движение по ценным бумагам инвестора
+                 * 3.2 Движение по производным финансовым инструментам
+                 * 3.3 Информация о позиционном состоянии по производным финансовым инструментам из таблицы
+                 * 4.1 Информация о ценных бумагах
+                 * 4.2 Информация об инструментах, не квалифицированных в качестве ценной бумаги
+                 * 4.3 Информация о производных финансовых инструментах
+                 */
+                ExchangeInformation: ParseExchangeInformation(report.Sections.Single(a => a.Name == "5.Информация о торговых площадках")),
+                CodeDefinitions: ParseCodeDefinitionsSection(report.Sections.Single(a => a.Name == "6. Расшифровка дополнительных кодов используемых в отчете"))
             ), new Footer());
 
-        public static ExecutedTradesSection ParseExecutedTradesSection(RawSection section) => new ExecutedTradesSection(
+        private static ExchangeInformationSection ParseExchangeInformation(RawSection section) => new ExchangeInformationSection(
             section.Name,
-            section.Tables.Single().Rows.Select(a => ParseExecutedTradeRow(a.Fields)).ToArray());
+            section.Tables.Single().Rows.Select(a => ParseExchangeInformationRow(a.Fields)).ToArray());
 
-        public static UnexecutedTradesSection ParseUnexecutedTradesSection(RawSection section) => new UnexecutedTradesSection(
+
+        private static CodeDefinitionsSection ParseCodeDefinitionsSection(RawSection section) => new CodeDefinitionsSection(
             section.Name,
-            section.Tables.Single().Rows.Select(a => ParseUnexecutedTradeRow(a.Fields)).ToArray());
+            section.Tables.Single().Rows.Select(a => ParseCodeDefinitionRow(a.Fields)).ToArray());
 
-        public static OtherTradesSection ParseOtherTradesSection(RawSection section) => new OtherTradesSection(
+
+        private static SettledTradesSection ParseSettledTradesSection(RawSection section) => new SettledTradesSection(
+            section.Name,
+            section.Tables.Single().Rows.Select(a => ParseSettledTradeRow(a.Fields)).ToArray());
+
+        private static UnsettledTradesSection ParseUnsettledTradesSection(RawSection section) => new UnsettledTradesSection(
+            section.Name,
+            section.Tables.Single().Rows.Select(a => ParseUnsettledTradeRow(a.Fields)).ToArray());
+
+        private static OtherTradesSection ParseOtherTradesSection(RawSection section) => new OtherTradesSection(
             section.Name,
             section.Tables.Single().Rows.Select(a => ParseOtherTradeRow(a.Fields)).ToArray());
 
-        public static CashOperationsSection ParseCashFlowOperationsSection(RawSection section) => new CashOperationsSection(
+        private static CashOperationsSection ParseCashFlowOperationsSection(RawSection section) => new CashOperationsSection(
             section.Name,
             section.Tables.First().Rows.Select(a => ParseCashFlowSummaryRow(a.Fields)).ToArray(),
             section
@@ -44,7 +72,16 @@
                     a => a.Columns.Single(),
                     a => (IReadOnlyList<CashFlowOperationRow>)a.ChildTables.Single().Rows.Select(a => ParseCashFlowOperationRow(a.Fields)).ToArray()));
 
-        public static CashFlowSummaryRow ParseCashFlowSummaryRow(IReadOnlyDictionary<string, string> rawRow) => new CashFlowSummaryRow(
+#region Field mapping
+        private static ExchangeInformationRow ParseExchangeInformationRow(IReadOnlyDictionary<string, string> rawRow) => new ExchangeInformationRow(
+          TradeMode: ConvertString(rawRow["Код режима торгов"]),
+          Description: ConvertString(rawRow["Описание"]));
+
+        private static CodeDefinitionRow ParseCodeDefinitionRow(IReadOnlyDictionary<string, string> rawRow) => new CodeDefinitionRow(
+            Code: ConvertString(rawRow["Код"]),
+            Definition: ConvertString(rawRow["Расшифровка"]));
+
+        private static CashFlowSummaryRow ParseCashFlowSummaryRow(IReadOnlyDictionary<string, string> rawRow) => new CashFlowSummaryRow(
             Currency: ConvertString(rawRow["Валюта"]),
             StartingBalance: ConvertDecimal(rawRow["Входящий остаток на начало периода:"]),
             EndingBalance: ConvertDecimal(rawRow["Исходящий остаток на конец периода:"]),
@@ -53,21 +90,21 @@
             UncoveredBalance: ConvertDecimal(rawRow["Сумма непокрытого остатка:"]),
             DebtToDepository: ConvertDecimal(rawRow["Задолженность клиента перед Депозитарием (справочно)"]));
 
-        public static CashFlowOperationRow ParseCashFlowOperationRow(IReadOnlyDictionary<string, string> rawRow) => new CashFlowOperationRow(
+        private static CashFlowOperationRow ParseCashFlowOperationRow(IReadOnlyDictionary<string, string> rawRow) => new CashFlowOperationRow(
             Date: ConvertDate(rawRow["Дата"]),
             Time: ConvertTime(rawRow["Время совершения"]),
-            ExecutionDate: ConvertDate(rawRow["Дата исполнения"]),
+            SettleDate: ConvertDate(rawRow["Дата исполнения"]),
             Operation: ConvertString(rawRow["Операция"]),
             Credit: ConvertDecimal(rawRow["Сумма зачисления"]),
             Debit: ConvertDecimal(rawRow["Сумма списания"]),
             Comment: rawRow["Примечание"]);
 
         //public static RepoContractChangesRow ParseRepoContractChangesRow(IDictionary<string, string> rawRow) => new OtherTradeRow(ParseSettledTradeRowBase(rawRow));
-        public static OtherTradeRow ParseOtherTradeRow(IReadOnlyDictionary<string, string> rawRow) => new OtherTradeRow(ParseSettledTradeRowBase(rawRow));
+        private static OtherTradeRow ParseOtherTradeRow(IReadOnlyDictionary<string, string> rawRow) => new OtherTradeRow(ParseSettledTradeRowBase(rawRow));
 
-        public static ExecutedTradeRow ParseExecutedTradeRow(IReadOnlyDictionary<string, string> rawRow) => new ExecutedTradeRow(ParseSettledTradeRowBase(rawRow));
+        private static SettledTradeRow ParseSettledTradeRow(IReadOnlyDictionary<string, string> rawRow) => new SettledTradeRow(ParseSettledTradeRowBase(rawRow));
 
-        public static UnexecutedTradeRow ParseUnexecutedTradeRow(IReadOnlyDictionary<string, string> rawRow) => new UnexecutedTradeRow(ParseTradeRowBase(rawRow));
+        private static UnsettledTradeRow ParseUnsettledTradeRow(IReadOnlyDictionary<string, string> rawRow) => new UnsettledTradeRow(ParseTradeRowBase(rawRow));
 
         private static SettledTradeRowBase ParseSettledTradeRowBase(IReadOnlyDictionary<string, string> rawRow) => new SettledTradeRowBase(
             ParseTradeRowBase(rawRow),
@@ -106,7 +143,9 @@
             contractType: ConvertString(rawRow["Тип дог."]),
             contractId: ConvertString(rawRow["Номер дог."]),
             contractDate: ConvertDate(rawRow["Дата дог."]));
+#endregion
 
+#region Scalar converters
         private static long? ConvertLong(string value)
         {
 
@@ -142,4 +181,5 @@
             }
         }
     }
+#endregion
 }

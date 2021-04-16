@@ -1,10 +1,11 @@
-﻿namespace kasthack.TinkoffReader.Raw
+﻿namespace kasthack.TinkoffReader.Reports.Converters.Raw
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using kasthack.TinkoffReader.Raw.Models;
+    using kasthack.TinkoffReader.Reports.Models.Raw;
+
     using OfficeOpenXml;
     using OfficeOpenXml.Style;
 
@@ -12,11 +13,11 @@
     /// Extracts data from a Tinkoff broker report in XLSX format.
     /// not threadsafe, create separate instances for parallel processing.
     /// </summary>
-    public class RawReportParser
+    public class TinkoffXlsx
     {
         private IDictionary<int, (int X1, int Y1, int X2, int Y2)[]> mergeLookupTable;
 
-        public RawReport ParseRawReport(ExcelPackage package)
+        public RawReport Transform(ExcelPackage package)
         {
             var sheet = package.Workbook.Worksheets[0];
             this.mergeLookupTable = this.BuildFastMergedCellLookupTable(sheet);

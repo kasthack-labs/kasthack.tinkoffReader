@@ -1,31 +1,10 @@
-﻿namespace kasthack.TinkoffReader.Typed
+﻿namespace kasthack.TinkoffReader.Reports.Models.Typed
 {
     using System;
-    using System.Collections.Generic;
 
-    public record Report(Header Header, Sections Sections, Footer Footer);
-
-    public record Header();
-
-    public record Sections(
-        ExecutedTradesSection ExectutedTrades,
-        UnexecutedTradesSection UnexectutedTrades,
-        OtherTradesSection OtherTrades,
-        CashOperationsSection CashOperations);
-
-    public record Footer();
-
-    public record ExecutedTradesSection(string Name, IReadOnlyList<ExecutedTradeRow> Rows);
-
-    public record UnexecutedTradesSection(string Name, IReadOnlyList<UnexecutedTradeRow> Rows);
-
-    public record OtherTradesSection(string Name, IReadOnlyList<OtherTradeRow> Rows);
-
-    public record CashOperationsSection(string Name, IReadOnlyList<CashFlowSummaryRow> Summary, IReadOnlyDictionary<string, IReadOnlyList<CashFlowOperationRow>> OperationsByCurrency);
-
-    public class UnexecutedTradeRow : TradeRowBase
+    public class UnsettledTradeRow : TradeRowBase
     {
-        public UnexecutedTradeRow(TradeRowBase value)
+        public UnsettledTradeRow(TradeRowBase value)
             : base(value)
         {
         }
@@ -44,14 +23,14 @@
         }
     }
 
-    public class ExecutedTradeRow : SettledTradeRowBase
+    public class SettledTradeRow : SettledTradeRowBase
     {
-        public ExecutedTradeRow(TradeRowBase row, string settlementType)
+        public SettledTradeRow(TradeRowBase row, string settlementType)
             : base(row, settlementType)
         {
         }
 
-        public ExecutedTradeRow(SettledTradeRowBase row)
+        public SettledTradeRow(SettledTradeRowBase row)
             : base(row)
         {
         }
@@ -185,22 +164,4 @@
             HashCode.Combine(this.SettlementDate, this.DeliveryDate, this.BrokerStaus, this.ContractType, this.ContractId, this.ContractDate));
     }
 
-
-    public record CashFlowSummaryRow(
-        string Currency,
-        decimal StartingBalance,
-        decimal EndingBalance,
-        decimal EndingBalanceIncludingUnsettled,
-        decimal DebtToBroker,
-        decimal UncoveredBalance,
-        decimal DebtToDepository);
-
-    public record CashFlowOperationRow(
-        DateTimeOffset? Date,
-        TimeSpan? Time,
-        DateTimeOffset? ExecutionDate,
-        string Operation,
-        decimal Credit,
-        decimal Debit,
-        string Comment);
 }

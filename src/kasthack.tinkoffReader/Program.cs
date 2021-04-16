@@ -2,14 +2,10 @@
 {
     using System;
     using System.IO;
-    using System.Linq;
     using System.Text.Json;
     using System.Threading.Tasks;
 
-    using kasthack.TinkoffReader.Raw;
-    using kasthack.TinkoffReader.Raw.Models;
-    using kasthack.TinkoffReader.Typed;
-    using kasthack.TinkoffReader.Xlsx;
+    using kasthack.TinkoffReader.Reports.Models.Raw;
 
     using OfficeOpenXml;
 
@@ -49,7 +45,7 @@
                     break;
                 case OutputFormat.Parsed:
                     {
-                        var report = ReportParser.ParseReport(rawReport);
+                        var report = kasthack.TinkoffReader.Reports.Converters.Typed.Raw.Transform(rawReport);
                         var json = JsonSerializer.Serialize(report, JsonOptions);
                         File.WriteAllText(outputPath.FullName, json);
                     }
@@ -57,7 +53,7 @@
                     break;
                 case OutputFormat.Xlsx:
                     {
-                        XlsxReportGenerator.GenerateXlsxReport(rawReport, outputPath);
+                        kasthack.TinkoffReader.Reports.Converters.Xlsx.Raw.Transform(rawReport, outputPath);
                     }
                     break;
                 default:
@@ -72,7 +68,7 @@
         private static RawReport ReadTinkoffXlsx(FileInfo inputPath)
         {
             using var package = new ExcelPackage(inputPath);
-            return new RawReportParser().ParseRawReport(package);
+            return new kasthack.TinkoffReader.Reports.Converters.Raw.TinkoffXlsx().Transform(package);
         }
 
         private static async Task<RawReport> ReadRawJson(FileInfo inputPath)

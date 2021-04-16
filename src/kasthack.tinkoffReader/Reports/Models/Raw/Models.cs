@@ -1,4 +1,4 @@
-﻿namespace kasthack.TinkoffReader.Raw.Models
+﻿namespace kasthack.TinkoffReader.Reports.Models.Raw
 {
     using System.Collections.Generic;
 
