@@ -17,7 +17,9 @@
 
     public record CashFlowOperationRow(
         DateTimeOffset? Date,
-        TimeSpan? Time,
+        /*
+        [System.Text.Json.Serialization.JsonIgnore()]
+        TimeSpan? Time,*/
         DateTimeOffset? SettleDate,
         string Operation,
         decimal Credit,

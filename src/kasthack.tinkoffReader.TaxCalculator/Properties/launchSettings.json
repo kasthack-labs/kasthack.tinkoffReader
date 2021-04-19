@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "kasthack.tinkoffReader.TaxCalculator": {
+      "commandName": "Project",
+      "commandLineArgs": "--input-path=E:\\files\\kasthack\\Own\\Source\\local\\taxes\\investments\\outputs\\broker-report-2019-12-01-2019-12-31.json --input-path=E:\\files\\kasthack\\Own\\Source\\local\\taxes\\investments\\outputs\\broker-report-2020-01-01-2020-12-31.json"
+    }
+  }
+}

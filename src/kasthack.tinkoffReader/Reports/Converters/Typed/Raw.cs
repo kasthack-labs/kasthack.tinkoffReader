@@ -26,7 +26,9 @@
                  * todo:
                  * 1.4 repo contract changes sections
                  * */
+
                 CashOperations: ParseCashFlowOperationsSection(report.Sections.Single(a => a.Name == "2. Операции с денежными средствами")),
+
                 /*
                  * todo:
                  * 3.1 Движение по ценным бумагам инвестора
@@ -36,7 +38,7 @@
                  * 4.2 Информация об инструментах, не квалифицированных в качестве ценной бумаги
                  * 4.3 Информация о производных финансовых инструментах
                  */
-                ExchangeInformation: ParseExchangeInformation(report.Sections.Single(a => a.Name == "5.Информация о торговых площадках")),
+                ExchangeInformation: ParseExchangeInformation(report.Sections.Single(a => a.Name == "5. Информация о торговых площадках")),
                 CodeDefinitions: ParseCodeDefinitionsSection(report.Sections.Single(a => a.Name == "6. Расшифровка дополнительных кодов используемых в отчете"))
             ), new Footer());
 

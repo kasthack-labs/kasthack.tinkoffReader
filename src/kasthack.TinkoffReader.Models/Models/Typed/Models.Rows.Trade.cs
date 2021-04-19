@@ -4,6 +4,7 @@
 
     public class UnsettledTradeRow : TradeRowBase
     {
+        public UnsettledTradeRow() { }
         public UnsettledTradeRow(TradeRowBase value)
             : base(value)
         {
@@ -12,6 +13,7 @@
 
     public class OtherTradeRow : SettledTradeRowBase
     {
+        public OtherTradeRow() { }
         public OtherTradeRow(TradeRowBase row, string settlementType)
             : base(row, settlementType)
         {
@@ -25,6 +27,8 @@
 
     public class SettledTradeRow : SettledTradeRowBase
     {
+        public SettledTradeRow() { }
+
         public SettledTradeRow(TradeRowBase row, string settlementType)
             : base(row, settlementType)
         {
@@ -45,12 +49,14 @@
             this.SettlementType = settlementType;
         }
 
+        public SettledTradeRowBase() { }
+
         public SettledTradeRowBase(SettledTradeRowBase row)
             : this(row, row.SettlementType)
         {
         }
 
-        public string SettlementType { get; }
+        public string SettlementType { get; init; }
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), this.SettlementType);
     }
@@ -58,25 +64,27 @@
     public class TradeRowBase : PartialTradeRowBase
     {
 
-        public decimal Price { get; }
+        public decimal Price { get; init; }
 
-        public string PriceCurrency { get; }
+        public string PriceCurrency { get; init; }
 
-        public long Quantity { get; }
+        public long Quantity { get; init; }
 
-        public decimal AmountExceptACY { get; }
+        public decimal AmountExceptACY { get; init; }
 
-        public decimal ACY { get; }
+        public decimal ACY { get; init; }
 
-        public decimal TradeAmount { get; }
+        public decimal TradeAmount { get; init; }
 
-        public decimal ExchangeFee { get; }
+        public decimal ExchangeFee { get; init; }
 
-        public string? ExchangeFeeCurrency { get; }
+        public string? ExchangeFeeCurrency { get; init; }
 
-        public decimal ClearingFee { get; }
+        public decimal ClearingFee { get; init; }
 
-        public string? ClearingFeeCurrency { get; }
+        public string? ClearingFeeCurrency { get; init; }
+
+        public TradeRowBase() { }
 
         public TradeRowBase(PartialTradeRowBase partialTradeRowBase, decimal price, string priceCurrency, long quantity, decimal amountExceptACY, decimal aCY, decimal tradeAmount, decimal exchangeFee, string? exchangeFeeCurrency, decimal clearingFee, string? clearingFeeCurrency)
             : base(partialTradeRowBase)
@@ -98,43 +106,46 @@
 
     public class PartialTradeRowBase
     {
-        public long TradeId { get; }
+        public long TradeId { get; init; }
 
-        public long? OrderId { get; }
+        public long? OrderId { get; init; }
 
-        public DateTimeOffset TradeDate { get; }
+        public DateTimeOffset TradeDate { get; init; }
 
-        public TimeSpan TradeTime { get; }
+        [System.Text.Json.Serialization.JsonIgnore()]
+        public TimeSpan TradeTime { get; init; }
 
-        public string Exchange { get; }
+        public string Exchange { get; init; }
 
-        public string Operation { get; }
+        public string Operation { get; init; }
 
-        public string InstrumentName { get; }
+        public string InstrumentName { get; init; }
 
-        public string InstrumentCode { get; }
+        public string InstrumentCode { get; init; }
 
-        public string SettlementCurrency { get; }
+        public string SettlementCurrency { get; init; }
 
-        public decimal BrokersFee { get; }
+        public decimal BrokersFee { get; init; }
 
-        public string? BrokersFeeCurrency { get; }
+        public string? BrokersFeeCurrency { get; init; }
 
         public decimal? RepoInterestRate { get; }
 
-        public string CentralCounterparty { get; }
+        public string CentralCounterparty { get; init; }
 
-        public DateTimeOffset SettlementDate { get; }
+        public DateTimeOffset SettlementDate { get; init; }
 
-        public DateTimeOffset? DeliveryDate { get; }
+        public DateTimeOffset? DeliveryDate { get; init; }
 
-        public string BrokerStaus { get; }
+        public string BrokerStaus { get; init; }
 
-        public string? ContractType { get; }
+        public string? ContractType { get; init; }
 
-        public string? ContractId { get; }
+        public string? ContractId { get; init; }
 
-        public DateTimeOffset? ContractDate { get; }
+        public DateTimeOffset? ContractDate { get; init; }
+
+        public PartialTradeRowBase() { }
 
         public PartialTradeRowBase(long tradeId, long? orderId, DateTimeOffset tradeDate, TimeSpan tradeTime, string exchange, string operation, string instrumentName,
             string instrumentCode, string settlementCurrency, decimal brokersFee, string? brokersFeeCurrency, decimal? repoInterestRate, string centralCounterparty,

@@ -2,7 +2,7 @@
   "profiles": {
     "kasthack.tinkoffReader": {
       "commandName": "Project",
-      "commandLineArgs": "--help"
+      "commandLineArgs": "--input-path=E:\\files\\kasthack\\Own\\Source\\local\\taxes\\investments\\inputs\\tcs_main\\broker-report-2019-12-01-2019-12-31.xlsx --output-format=Parsed --output-path=E:\\files\\kasthack\\Own\\Source\\local\\taxes\\investments\\outputs\\broker-report-2019-12-01-2019-12-31.xlsx"
     }
   }
 }

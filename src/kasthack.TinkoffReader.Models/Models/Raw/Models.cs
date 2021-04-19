@@ -30,6 +30,7 @@
     {
         public bool IsValid() => new[]
         {
+            // TODO: decouple from tinkoff
             (this.BrokerName, nameof(this.BrokerName), "АО «Тинькофф Банк»"),
             (this.AccountingPerson, nameof(this.AccountingPerson), "Сотрудник банка, ответственный за ведение внутреннего учета (ФИО)"),
             (this.BrokerDivisionHead, nameof(this.BrokerDivisionHead), "Руководитель отдела брокерских услуг"),
