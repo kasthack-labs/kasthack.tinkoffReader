@@ -5,6 +5,7 @@
     using System.Globalization;
     using System.Linq;
 
+    using kasthack.TinkoffReader.Reports.Helpers;
     using kasthack.TinkoffReader.Reports.Models.Raw;
     using kasthack.TinkoffReader.Reports.Models.Typed;
 
@@ -136,7 +137,12 @@
             brokersFee: ConvertDecimal(rawRow["Комиссия брокера"]),
             brokersFeeCurrency: ConvertString(rawRow["Валюта комиссии"]),
             repoInterestRate: ConvertDecimal(rawRow["Ставка РЕПО(%)"]),
-            centralCounterparty: ConvertString(rawRow["Контрагент"]),
+            centralCounterparty: ConvertString(
+                rawRow.GetValueAtAnyKey(
+                    "Контрагент",               //v2020
+                    "Контрагент / Брокер"       //v2021
+                )
+            ),
             settlementDate: ConvertDate(rawRow["Дата расчетов"]).Value,
             deliveryDate: ConvertDate(rawRow["Дата поставки"]),
             brokerStaus: ConvertString(rawRow["Статус брокера"]),

@@ -1,100 +1,15 @@
 ﻿namespace kasthack.TinkoffReader.Reports.Models.Typed
 {
     using System;
-
-    public class UnsettledTradeRow : TradeRowBase
-    {
-        public UnsettledTradeRow(TradeRowBase value)
-            : base(value)
-        {
-        }
-    }
-
-    public class OtherTradeRow : SettledTradeRowBase
-    {
-        public OtherTradeRow(TradeRowBase row, string settlementType)
-            : base(row, settlementType)
-        {
-        }
-
-        public OtherTradeRow(SettledTradeRowBase row)
-            : base(row)
-        {
-        }
-    }
-
-    public class SettledTradeRow : SettledTradeRowBase
-    {
-        public SettledTradeRow(TradeRowBase row, string settlementType)
-            : base(row, settlementType)
-        {
-        }
-
-        public SettledTradeRow(SettledTradeRowBase row)
-            : base(row)
-        {
-        }
-    }
-
-    public class SettledTradeRowBase : TradeRowBase
-    {
-
-        public SettledTradeRowBase(TradeRowBase row, string settlementType)
-            : base(row)
-        {
-            this.SettlementType = settlementType;
-        }
-
-        public SettledTradeRowBase(SettledTradeRowBase row)
-            : this(row, row.SettlementType)
-        {
-        }
-
-        public string SettlementType { get; }
-
-        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), this.SettlementType);
-    }
-
-    public class TradeRowBase : PartialTradeRowBase
-    {
-
-        public decimal Price { get; }
-
-        public string PriceCurrency { get; }
-
-        public long Quantity { get; }
-
-        public decimal AmountExceptACY { get; }
-
-        public decimal ACY { get; }
-
-        public decimal TradeAmount { get; }
-
-        public decimal ExchangeFee { get; }
-
-        public string? ExchangeFeeCurrency { get; }
-
-        public decimal ClearingFee { get; }
-
-        public string? ClearingFeeCurrency { get; }
-
-        public TradeRowBase(PartialTradeRowBase partialTradeRowBase, decimal price, string priceCurrency, long quantity, decimal amountExceptACY, decimal aCY, decimal tradeAmount, decimal exchangeFee, string? exchangeFeeCurrency, decimal clearingFee, string? clearingFeeCurrency)
-            : base(partialTradeRowBase)
-                =>
-                    (this.Price, this.PriceCurrency, this.Quantity, this.AmountExceptACY, this.ACY, this.TradeAmount, this.ExchangeFee, this.ExchangeFeeCurrency, this.ClearingFee, this.ClearingFeeCurrency)
-                        =
-                    (price, priceCurrency, quantity, amountExceptACY, aCY, tradeAmount, exchangeFee, exchangeFeeCurrency, clearingFee, clearingFeeCurrency);
-
-        public TradeRowBase(TradeRowBase value)
-            : this(value, value.Price, value.PriceCurrency, value.Quantity, value.AmountExceptACY, value.ACY, value.TradeAmount, value.ExchangeFee, value.ExchangeFeeCurrency, value.ClearingFee, value.ClearingFeeCurrency)
-        {
-        }
-
-        public override int GetHashCode() => HashCode.Combine(
-            base.GetHashCode(),
-            HashCode.Combine(this.Price, this.PriceCurrency, this.Quantity, this.AmountExceptACY, this.ACY, this.TradeAmount, this.ExchangeFee),
-            HashCode.Combine(this.ExchangeFeeCurrency, this.ClearingFee, this.ClearingFeeCurrency));
-    }
+    /*
+     *  Inheritance:
+     *  PartialTradeRowBase
+     *      TradeRowBase
+     *          SettledTradeRowBase
+     *              SettledTradeRow
+     *              OtherTradeRow
+     *          UnsettledTradeRow
+     */
 
     public class PartialTradeRowBase
     {
@@ -164,4 +79,100 @@
             HashCode.Combine(this.SettlementDate, this.DeliveryDate, this.BrokerStaus, this.ContractType, this.ContractId, this.ContractDate));
     }
 
+    public class TradeRowBase : PartialTradeRowBase
+    {
+
+        public decimal Price { get; }
+
+        public string PriceCurrency { get; }
+
+        public long Quantity { get; }
+
+        public decimal AmountExceptACY { get; }
+
+        public decimal ACY { get; }
+
+        public decimal TradeAmount { get; }
+
+        public decimal ExchangeFee { get; }
+
+        public string? ExchangeFeeCurrency { get; }
+
+        public decimal ClearingFee { get; }
+
+        public string? ClearingFeeCurrency { get; }
+
+        public TradeRowBase(PartialTradeRowBase partialTradeRowBase, decimal price, string priceCurrency, long quantity, decimal amountExceptACY, decimal aCY, decimal tradeAmount, decimal exchangeFee, string? exchangeFeeCurrency, decimal clearingFee, string? clearingFeeCurrency)
+            : base(partialTradeRowBase)
+                =>
+                    (this.Price, this.PriceCurrency, this.Quantity, this.AmountExceptACY, this.ACY, this.TradeAmount, this.ExchangeFee, this.ExchangeFeeCurrency, this.ClearingFee, this.ClearingFeeCurrency)
+                        =
+                    (price, priceCurrency, quantity, amountExceptACY, aCY, tradeAmount, exchangeFee, exchangeFeeCurrency, clearingFee, clearingFeeCurrency);
+
+        public TradeRowBase(TradeRowBase value)
+            : this(value, value.Price, value.PriceCurrency, value.Quantity, value.AmountExceptACY, value.ACY, value.TradeAmount, value.ExchangeFee, value.ExchangeFeeCurrency, value.ClearingFee, value.ClearingFeeCurrency)
+        {
+        }
+
+        public override int GetHashCode() => HashCode.Combine(
+            base.GetHashCode(),
+            HashCode.Combine(this.Price, this.PriceCurrency, this.Quantity, this.AmountExceptACY, this.ACY, this.TradeAmount, this.ExchangeFee),
+            HashCode.Combine(this.ExchangeFeeCurrency, this.ClearingFee, this.ClearingFeeCurrency));
+    }
+
+    public class SettledTradeRowBase : TradeRowBase
+    {
+
+        public SettledTradeRowBase(TradeRowBase row, string settlementType)
+            : base(row)
+        {
+            this.SettlementType = settlementType;
+        }
+
+        public SettledTradeRowBase(SettledTradeRowBase row)
+            : this(row, row.SettlementType)
+        {
+        }
+
+        public string SettlementType { get; }
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), this.SettlementType);
+    }
+
+    // 1.1 Информация о совершенных и исполненных сделках на конец отчетного периода
+    public class SettledTradeRow : SettledTradeRowBase
+    {
+        public SettledTradeRow(TradeRowBase row, string settlementType)
+            : base(row, settlementType)
+        {
+        }
+
+        public SettledTradeRow(SettledTradeRowBase row)
+            : base(row)
+        {
+        }
+    }
+
+    // 1.2 Информация о неисполненных сделках на конец отчетного периода
+    public class UnsettledTradeRow : TradeRowBase
+    {
+        public UnsettledTradeRow(TradeRowBase value)
+            : base(value)
+        {
+        }
+    }
+
+    // 1.3 Сделки за расчетный период, обязательства из которых прекращены  не в результате исполнения
+    public class OtherTradeRow : SettledTradeRowBase
+    {
+        public OtherTradeRow(TradeRowBase row, string settlementType)
+            : base(row, settlementType)
+        {
+        }
+
+        public OtherTradeRow(SettledTradeRowBase row)
+            : base(row)
+        {
+        }
+    }
 }
